@@ -21,6 +21,7 @@ import type { ExcalidrawElement, NonDeletedExcalidrawElement } from "./types";
 export const TIDY_UP_GAP = 16;
 
 const SIZE_BUCKET_PX = 16;
+const HALF = 2;
 
 const RESIZABLE_SHAPE_TYPES = new Set<ExcalidrawElement["type"]>([
   "rectangle",
@@ -55,7 +56,7 @@ export const tidyUpElements = (
   selectedElements: readonly NonDeletedExcalidrawElement[],
   scene: Scene,
 ): void => {
-  if (selectedElements.length < 2) {
+  if (selectedElements.length < HALF) {
     return;
   }
   const selectionBoundingBox = getCommonBoundingBox(selectedElements);
@@ -64,7 +65,7 @@ export const tidyUpElements = (
   normalizeSizes(selectedElements, scene);
 
   const units = buildTidyUnits(selectedElements, scene);
-  if (units.length < 2) {
+  if (units.length < HALF) {
     return;
   }
   placeUnitsInGrid(units, selectionBoundingBox, scene);
@@ -112,10 +113,10 @@ const normalizeSizes = (
       continue;
     }
     scene.mutateElement(shape, {
-      x: shape.x + (shape.width - targetWidth) / 2,
-      y: shape.y + (shape.height - targetHeight) / 2,
-      width: targetWidth,
       height: targetHeight,
+      width: targetWidth,
+      x: shape.x + (shape.width - targetWidth) / HALF,
+      y: shape.y + (shape.height - targetHeight) / HALF,
     });
     const boundText = getBoundTextElement(shape, elementsMap);
     if (boundText) {
@@ -131,10 +132,10 @@ const normalizeSizes = (
     const newWidth = isLandscape ? targetWidth : targetHeight * aspectRatio;
     const newHeight = isLandscape ? targetWidth / aspectRatio : targetHeight;
     scene.mutateElement(element, {
-      x: element.x + (element.width - newWidth) / 2,
-      y: element.y + (element.height - newHeight) / 2,
-      width: newWidth,
       height: newHeight,
+      width: newWidth,
+      x: element.x + (element.width - newWidth) / HALF,
+      y: element.y + (element.height - newHeight) / HALF,
     });
   }
 };
@@ -188,8 +189,8 @@ const placeUnitsInGrid = (
   scene: Scene,
 ) => {
   const measured = units.map((unit) => ({
-    unit,
     box: getCommonBoundingBox(unit.elements),
+    unit,
   }));
   const maxUnitWidth = Math.max(...measured.map(({ box }) => box.width));
   const maxUnitHeight = Math.max(...measured.map(({ box }) => box.height));
@@ -220,15 +221,15 @@ const placeUnitsInGrid = (
 
   const gridWidth = columns * cellWidth - TIDY_UP_GAP;
   const gridHeight = rows * cellHeight - TIDY_UP_GAP;
-  const originX = selectionBoundingBox.midX - gridWidth / 2;
-  const originY = selectionBoundingBox.midY - gridHeight / 2;
+  const originX = selectionBoundingBox.midX - gridWidth / HALF;
+  const originY = selectionBoundingBox.midY - gridHeight / HALF;
 
   const movedElements: NonDeletedExcalidrawElement[] = [];
   ordered.forEach(({ unit, box }, index) => {
     const row = Math.floor(index / columns);
     const column = index % columns;
-    const targetCenterX = originX + column * cellWidth + maxUnitWidth / 2;
-    const targetCenterY = originY + row * cellHeight + maxUnitHeight / 2;
+    const targetCenterX = originX + column * cellWidth + maxUnitWidth / HALF;
+    const targetCenterY = originY + row * cellHeight + maxUnitHeight / HALF;
     const deltaX = targetCenterX - box.midX;
     const deltaY = targetCenterY - box.midY;
     for (const element of unit.elements) {
