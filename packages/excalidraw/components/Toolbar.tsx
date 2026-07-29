@@ -22,6 +22,7 @@ import {
   MagicIcon,
   mermaidLogoIcon,
   DotsIcon,
+  TidyUpIcon,
 } from "./icons";
 import {
   ArrowToolButton,
@@ -70,6 +71,7 @@ const ExtraToolsDropdown = ({
     activeTool.type === "lasso" &&
     app.state.preferredSelectionTool.type !== "lasso";
   const embeddableToolSelected = activeTool.type === "embeddable";
+  const tidyUpToolSelected = activeTool.type === "tidyup";
 
   return (
     <DropdownMenu open={isExtraToolsMenuOpen}>
@@ -80,6 +82,7 @@ const ExtraToolsDropdown = ({
             embeddableToolSelected ||
             (isFullStylesPanel && drawShapeToolSelected) ||
             lassoToolSelected ||
+            tidyUpToolSelected ||
             // in collab we're already highlighting the laser button
             // outside toolbar, so let's not highlight extra-tools button
             // on top of it
@@ -101,6 +104,8 @@ const ExtraToolsDropdown = ({
           ? laserPointerToolIcon
           : lassoToolSelected
           ? LassoIcon
+          : tidyUpToolSelected
+          ? TidyUpIcon
           : DotsIcon}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
@@ -146,6 +151,14 @@ const ExtraToolsDropdown = ({
           disabled={isToolButtonDisabled(app, "laser")}
         >
           {t("toolBar.laser")}
+        </DropdownMenu.Item>
+        <DropdownMenu.Item
+          onSelect={() => app.setActiveTool({ type: "tidyup" })}
+          icon={TidyUpIcon}
+          data-testid="toolbar-tidyup"
+          selected={tidyUpToolSelected}
+        >
+          {t("toolBar.tidyup")}
         </DropdownMenu.Item>
         {isFullStylesPanel && (
           <DropdownMenu.Item

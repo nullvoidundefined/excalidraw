@@ -8,9 +8,12 @@ import {
 
 import { TIDY_UP_GAP, tidyUpElements } from "../src/tidyUp";
 
+import type { NonDeletedExcalidrawElement } from "../src/types";
+
 const h = window.h;
 
-const getNonDeleted = () => h.elements.filter((el) => !el.isDeleted);
+const getNonDeleted = () =>
+  h.elements.filter((el) => !el.isDeleted) as NonDeletedExcalidrawElement[];
 
 const boundingBoxesOverlap = (
   a: { x: number; y: number; width: number; height: number },

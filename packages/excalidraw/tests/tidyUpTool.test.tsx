@@ -4,7 +4,7 @@ import { Excalidraw } from "../index";
 
 import { API } from "./helpers/api";
 import { Keyboard, Pointer } from "./helpers/ui";
-import { act, render, unmountComponent } from "./test-utils";
+import { act, fireEvent, render, unmountComponent } from "./test-utils";
 
 const h = window.h;
 const mouse = new Pointer("mouse");
@@ -144,6 +144,17 @@ describe("tidy up tool", () => {
         strokeColor: el.strokeColor,
       })),
     ).toEqual(originalSnapshot);
+  });
+
+  it("activates from the extra-tools dropdown", () => {
+    const extraToolsTrigger = document.querySelector(
+      "[title='More tools']",
+    ) as HTMLElement;
+    fireEvent.click(extraToolsTrigger);
+    fireEvent.click(
+      document.querySelector("[data-testid='toolbar-tidyup']") as HTMLElement,
+    );
+    expect(h.state.activeTool.type).toBe("tidyup");
   });
 
   it("creates no elements", () => {

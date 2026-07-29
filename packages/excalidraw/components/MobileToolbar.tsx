@@ -29,6 +29,7 @@ import {
   frameToolIcon,
   EmbedIcon,
   laserPointerToolIcon,
+  TidyUpIcon,
   drawShapeToolIcon,
   mermaidLogoIcon,
   MagicIcon,
@@ -110,7 +111,7 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
   const showFrameToolOutside = toolbarWidth >= MIN_WIDTH + 3 * ADDITIONAL_WIDTH;
 
   const extraTools: readonly typeof activeTool.type[] = (
-    ["text", "frame", "embeddable", "laser", "magicframe"] as const
+    ["text", "frame", "embeddable", "laser", "magicframe", "tidyup"] as const
   ).filter((tool) => {
     if (showTextToolOutside && tool === "text") {
       return false;
@@ -134,6 +135,8 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
       ? laserPointerToolIcon
       : activeTool.type === "magicframe"
       ? MagicIcon
+      : activeTool.type === "tidyup"
+      ? TidyUpIcon
       : DotsIcon
     : DotsIcon;
 
@@ -307,6 +310,14 @@ export const MobileToolbar = ({ app, setAppState }: MobileToolbarProps) => {
             disabled={isToolButtonDisabled(app, "laser")}
           >
             {t("toolBar.laser")}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => app.setActiveTool({ type: "tidyup" })}
+            icon={TidyUpIcon}
+            data-testid="toolbar-tidyup"
+            selected={activeTool.type === "tidyup"}
+          >
+            {t("toolBar.tidyup")}
           </DropdownMenu.Item>
           <div style={{ margin: "6px 0", fontSize: 14, fontWeight: 600 }}>
             Generate
