@@ -121,6 +121,7 @@ import {
   fixBindingsAfterDeletion,
   getHoveredElementForBinding,
   isBindingEnabled,
+  tidyUpElements,
   updateBoundElements,
   LinearElementEditor,
   newElementWith,
@@ -8787,6 +8788,12 @@ class App extends React.Component<AppProps, AppState> {
       );
     } else if (this.state.activeTool.type === "autoshape") {
       this.drawShape.handlePointerDown(pointerDownState);
+    } else if (this.state.activeTool.type === TOOL_TYPE.tidyup) {
+      // reuse the selection rubber-band as a pure hit-test lasso; mark box
+      // selection as started so pointer-move resizes the rubber band (that
+      // flag is otherwise only set for the selection tool)
+      this.createGenericElementOnPointerDown("selection", pointerDownState);
+      pointerDownState.boxSelection.hasOccurred = true;
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand" &&
@@ -11457,6 +11464,10 @@ class App extends React.Component<AppProps, AppState> {
         isRotating,
         isCropping,
       } = this.state;
+      const tidyUpRegion =
+        this.state.activeTool.type === TOOL_TYPE.tidyup
+          ? this.state.selectionElement
+          : null;
 
       this.setState((prevState) => ({
         isResizing: false,
@@ -11479,6 +11490,26 @@ class App extends React.Component<AppProps, AppState> {
       SnapCache.setVisibleGaps(null);
 
       this.savePointer(childEvent.clientX, childEvent.clientY, "up");
+
+      if (this.state.activeTool.type === TOOL_TYPE.tidyup) {
+        if (tidyUpRegion) {
+          const elementsToTidy = getElementsWithinSelection(
+            this.scene.getNonDeletedElements(),
+            tidyUpRegion,
+            elementsMap,
+            true,
+            "overlap",
+          );
+          if (elementsToTidy.length > 1) {
+            tidyUpElements(elementsToTidy, this.scene);
+            this.store.scheduleCapture();
+          }
+        }
+        if (!this.state.activeTool.locked) {
+          this.setActiveTool({ type: "selection" });
+        }
+        return;
+      }
 
       // if current elements are still selected
       // and the pointer is just over a locked element

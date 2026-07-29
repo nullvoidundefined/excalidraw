@@ -500,6 +500,7 @@ export const TOOL_TYPE = {
   embeddable: "embeddable",
   laser: "laser",
   autoshape: "autoshape",
+  tidyup: "tidyup",
 } as const;
 
 export const EDITOR_LS_KEYS = {
