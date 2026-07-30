@@ -61,8 +61,12 @@ export const tidyUpElements = (
   }
   const selectionBoundingBox = getCommonBoundingBox(selectedElements);
 
-  normalizeStyles(selectedElements, scene);
-  normalizeSizes(selectedElements, scene);
+  const untetheredElements = selectedElements.filter(
+    (element) => !element.frameId,
+  );
+
+  normalizeStyles(untetheredElements, scene);
+  normalizeSizes(untetheredElements, scene);
 
   const units = buildTidyUnits(selectedElements, scene);
   if (units.length < HALF) {

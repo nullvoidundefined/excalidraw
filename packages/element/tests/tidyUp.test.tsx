@@ -101,6 +101,13 @@ describe("tidyUpElements", () => {
         x: 400,
         y: 0,
         strokeColor: "#1971c2",
+        backgroundColor: "#ffc9c9",
+      }),
+      API.createElement({
+        type: "ellipse",
+        x: 600,
+        y: 0,
+        strokeColor: "#1971c2",
         backgroundColor: "#b2f2bb",
       }),
     ]);
@@ -108,16 +115,20 @@ describe("tidyUpElements", () => {
     tidyUpElements(getNonDeleted(), h.app.scene);
 
     const tidied = getNonDeleted();
+    // strokeColor is 2x #e03131 vs 2x #1971c2, a genuine tie -> the
+    // earliest (lowest z-order) value wins
     expect(tidied.map((el) => el.strokeColor)).toEqual([
       "#e03131",
       "#e03131",
       "#e03131",
+      "#e03131",
     ]);
-    // backgroundColor is 1x #ffc9c9 vs 2x #b2f2bb -> majority #b2f2bb
+    // backgroundColor is also a 2x/2x tie -> earliest value (#ffc9c9) wins
     expect(tidied.map((el) => el.backgroundColor)).toEqual([
-      "#b2f2bb",
-      "#b2f2bb",
-      "#b2f2bb",
+      "#ffc9c9",
+      "#ffc9c9",
+      "#ffc9c9",
+      "#ffc9c9",
     ]);
   });
 
@@ -269,6 +280,52 @@ describe("tidyUpElements", () => {
     ) as typeof arrow;
     expect(tidiedArrow.startBinding?.elementId).toBe(rectangleA.id);
     expect(tidiedArrow.endBinding?.elementId).toBe(rectangleB.id);
+  });
+
+  it("leaves a frame child's style and size untouched when its frame is not selected", () => {
+    const frame = API.createElement({ type: "frame", x: 0, y: 0 });
+    const framedRectangle = API.createElement({
+      type: "rectangle",
+      x: 10,
+      y: 10,
+      width: 40,
+      height: 40,
+      strokeColor: "#1971c2",
+      frameId: frame.id,
+    });
+    const rectangles = [
+      framedRectangle,
+      API.createElement({
+        type: "rectangle",
+        x: 200,
+        y: 0,
+        width: 100,
+        height: 100,
+        strokeColor: "#e03131",
+      }),
+      API.createElement({
+        type: "rectangle",
+        x: 400,
+        y: 0,
+        width: 100,
+        height: 100,
+        strokeColor: "#e03131",
+      }),
+    ];
+    API.setElements([frame, ...rectangles]);
+
+    // the frame itself is not part of the lasso selection, only its child
+    const selection = getNonDeleted().filter((el) => el.id !== frame.id);
+    tidyUpElements(selection, h.app.scene);
+
+    const tidiedFramedRectangle = h.elements.find(
+      (el) => el.id === framedRectangle.id,
+    )!;
+    expect(tidiedFramedRectangle.x).toBe(10);
+    expect(tidiedFramedRectangle.y).toBe(10);
+    expect(tidiedFramedRectangle.width).toBe(40);
+    expect(tidiedFramedRectangle.height).toBe(40);
+    expect(tidiedFramedRectangle.strokeColor).toBe("#1971c2");
   });
 
   it("is a no-op for fewer than 2 elements", () => {
